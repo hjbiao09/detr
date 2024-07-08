@@ -75,6 +75,7 @@ class BackboneBase(nn.Module):
         for name, x in xs.items():
             m = tensor_list.mask
             assert m is not None
+            # seems mask.shape is [b, h, w], so add new axis for batch processing.
             mask = F.interpolate(m[None].float(), size=x.shape[-2:]).to(torch.bool)[0]
             out[name] = NestedTensor(x, mask)
         return out
@@ -89,7 +90,7 @@ class Backbone(BackboneBase):
         backbone = getattr(torchvision.models, name)(
             replace_stride_with_dilation=[False, False, dilation],
             pretrained=is_main_process(), norm_layer=FrozenBatchNorm2d)
-        num_channels = 512 if name in ('resnet18', 'resnet34') else 2048
+        num_channels = 512 if name in ('resnet18', 'resnet34') else 2048  # seems we don't use it...
         super().__init__(backbone, train_backbone, num_channels, return_interm_layers)
 
 
@@ -105,7 +106,6 @@ class Joiner(nn.Sequential):
             out.append(x)
             # position encoding
             pos.append(self[1](x).to(x.tensors.dtype))
-
         return out, pos
 
 
