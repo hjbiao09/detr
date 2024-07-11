@@ -47,12 +47,12 @@ class Transformer(nn.Module):
     def forward(self, src, mask, query_embed, pos_embed):
         # flatten NxCxHxW to HWxNxC
         bs, c, h, w = src.shape
-        src = src.flatten(2).permute(2, 0, 1)
-        pos_embed = pos_embed.flatten(2).permute(2, 0, 1)
-        query_embed = query_embed.unsqueeze(1).repeat(1, bs, 1)
-        mask = mask.flatten(1)
+        src = src.flatten(2).permute(2, 0, 1)  # [bs, c, h, w] -> [h * w, bs, c]
+        pos_embed = pos_embed.flatten(2).permute(2, 0, 1)  # same
+        query_embed = query_embed.unsqueeze(1).repeat(1, bs, 1)  # [100, c] -> [100, bs, c]  repeat query embed for batch
+        mask = mask.flatten(1)  # [bs, h, w] -> [bs, h * w]
 
-        tgt = torch.zeros_like(query_embed)
+        tgt = torch.zeros_like(query_embed)  # 첫번째 입력은 제로 이며 실제로는 pos_embed 정보가 self-atten에서 들어감, 논문 참조
         memory = self.encoder(src, src_key_padding_mask=mask, pos=pos_embed)
         hs = self.decoder(tgt, memory, memory_key_padding_mask=mask,
                           pos=pos_embed, query_pos=query_embed)
