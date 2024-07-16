@@ -66,6 +66,7 @@ class HungarianMatcher(nn.Module):
         # but approximate it in 1 - proba[target class].
         # The 1 is a constant that doesn't change the matching, it can be ommitted.
         cost_class = -out_prob[:, tgt_ids]
+        # 우리가 관심이 있는 것은 92개 클래스중 타켓이 포함하는 tgt_ids만큼의 목표들이다, 따라서 해당 부분만 추출 굳이 92개를 추출할 필요가 없다,
 
         # Compute the L1 cost between boxes
         cost_bbox = torch.cdist(out_bbox, tgt_bbox, p=1)
